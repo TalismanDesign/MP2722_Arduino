@@ -1,0 +1,42 @@
+{
+    "name": "MP2722_Arduino",
+    "version": "1.0.0",
+    "description": "Arduino library for the MP2722 battery charger IC",
+    "keywords": [
+        "PocketMage",
+        "MP2722",
+        "battery",
+        "charger",
+        "power"
+    ],
+    "authors": [
+        {
+            "name": "TailsmanDesign",
+            "url": "https://github.com/TailsmanDesign"
+        },
+        {
+            "name": "NellowTCS",
+            "url": "https://github.com/NellowTCS"
+        },
+        {
+            "name": "Ashtf",
+            "url": "https://github.com/ashtf8"
+        }
+    ],
+    "license": "MIT",
+    "repository": {
+        "type": "git",
+        "url": "https://github.com/TailsmanDesign/MP2722_Arduino"
+    },
+    "build": {
+        "includeDir": "src",
+        "srcDir": "src"
+    },
+    "frameworks": [
+        "arduino"
+    ],
+    "platforms": [
+        "espressif32"
+    ],
+    "dependencies": {}
+}
