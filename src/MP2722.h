@@ -2,11 +2,20 @@
 
 #include <Arduino.h>
 #include <Wire.h>
-#include <config.h>
 
 class MP2722 {
 public:
-  explicit MP2722(TwoWire& wirePort = Wire);
+  // Datasheet I2C address. Override through the constructor or init() when the
+  // board has a different address.
+  static constexpr uint8_t DEFAULT_ADDRESS = 0x3F;
+
+  // Pass as muxPin when the board has no USB data-line mux; the mux helpers
+  // then become no-ops.
+  static constexpr int8_t NO_MUX_PIN = -1;
+
+  explicit MP2722(TwoWire& wirePort = Wire,
+                  uint8_t address = DEFAULT_ADDRESS,
+                  int8_t muxPin = NO_MUX_PIN);
 
   bool begin();
   bool isConnected();
@@ -34,7 +43,11 @@ public:
   bool readReg(uint8_t reg, uint8_t &value);
 
   // Helper functions
-  bool init(uint8_t sda, uint8_t scl);
+  bool init(uint8_t sda, uint8_t scl,
+            uint8_t address = DEFAULT_ADDRESS,
+            int8_t muxPin = NO_MUX_PIN);
+  void setAddress(uint8_t address);
+  void setMuxPin(int8_t muxPin);
   void printDiagnostics();
   bool setCCMode(uint8_t cc_cfg);
   bool setBoostCurrentLimit(float amps);

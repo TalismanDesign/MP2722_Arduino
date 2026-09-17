@@ -13,7 +13,12 @@
 // Initialization of MP2722 Class
 MP2722 PowerSystem;
 
-MP2722::MP2722(TwoWire& wirePort) : _wire(&wirePort) {}
+MP2722::MP2722(TwoWire& wirePort, uint8_t address, int8_t muxPin)
+    : _wire(&wirePort), _address(address), _muxPin(muxPin) {}
+
+void MP2722::setAddress(uint8_t address) { _address = address; }
+
+void MP2722::setMuxPin(int8_t muxPin) { _muxPin = muxPin; }
 
 bool MP2722::begin() {
   _wire->begin();
@@ -21,23 +26,23 @@ bool MP2722::begin() {
 }
 
 bool MP2722::isConnected() {
-  _wire->beginTransmission(MP2722_ADDR);
+  _wire->beginTransmission(_address);
   return (_wire->endTransmission() == 0);
 }
 
 bool MP2722::writeReg(uint8_t reg, uint8_t value) {
-  _wire->beginTransmission(MP2722_ADDR);
+  _wire->beginTransmission(_address);
   _wire->write(reg);
   _wire->write(value);
   return (_wire->endTransmission() == 0);
 }
 
 bool MP2722::readReg(uint8_t reg, uint8_t &value) {
-  _wire->beginTransmission(MP2722_ADDR);
+  _wire->beginTransmission(_address);
   _wire->write(reg);
   if (_wire->endTransmission(false) != 0) return false;
 
-  if (_wire->requestFrom(static_cast<uint8_t>(MP2722_ADDR), static_cast<uint8_t>(1)) != 1) return false;
+  if (_wire->requestFrom(static_cast<uint8_t>(_address), static_cast<uint8_t>(1)) != 1) return false;
   value = _wire->read();
   return true;
 }
@@ -148,12 +153,14 @@ bool MP2722::getBoostState(bool &enabled) {
 }
 
 void MP2722::setUSBControlESP() {
-  digitalWrite(USB_MUX_PIN, HIGH);
+  if (_muxPin < 0) return;
+  digitalWrite(_muxPin, HIGH);
 }
 
 
 void MP2722::setUSBControlBMS() {
-  digitalWrite(USB_MUX_PIN, LOW);
+  if (_muxPin < 0) return;
+  digitalWrite(_muxPin, LOW);
 }
 
 bool MP2722::getDPDMStatus(DPDMResult &out) {
@@ -258,16 +265,20 @@ void MP2722::printDiagnostics() {
 }
 
 // ----- INIT ----- //
-bool MP2722::init(uint8_t sda, uint8_t scl) {
+bool MP2722::init(uint8_t sda, uint8_t scl, uint8_t address, int8_t muxPin) {
+  _address = address;
+  _muxPin = muxPin;
+
   // Start I2C
   Wire.begin(sda, scl);
   if (!begin()) return false;
 
-  // Designate Multiplexer pin as output
-  pinMode(USB_MUX_PIN, OUTPUT);
-
-  // Give USB control to BMS
-  setUSBControlBMS();
+  // Boards without a USB mux skip the pin setup and control handoff
+  if (_muxPin >= 0) {
+    pinMode(_muxPin, OUTPUT);
+    // Give USB control to BMS
+    setUSBControlBMS();
+  }
 
   // Set fast charge current limit to 1200mA
   if (!setFastChargeCurrent(1200)) return false;
