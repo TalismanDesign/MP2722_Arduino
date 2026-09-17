@@ -65,6 +65,8 @@ public:
 
 private:
   TwoWire* _wire;
+  uint8_t _address;
+  int8_t _muxPin;
 };
 
 // Initialization of MP2722 Class
